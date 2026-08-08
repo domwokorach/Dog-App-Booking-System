@@ -77,28 +77,44 @@ app.use((req, res, next) => {
 
 // MongoDB connection configuration
 const constructMongoURI = () => {
-  const username = encodeURIComponent(process.env.MONGODB_USERNAME);
-  const password = encodeURIComponent(process.env.MONGODB_PASSWORD);
+  if (process.env.MONGODB_URI) {
+    return process.env.MONGODB_URI;
+  }
+
+  const username = encodeURIComponent(process.env.MONGODB_USERNAME || "");
+  const password = encodeURIComponent(process.env.MONGODB_PASSWORD || "");
   const cluster = process.env.MONGODB_CLUSTER;
   const database = process.env.MONGODB_DATABASE;
+
+  if (!cluster || !database) {
+    console.warn("MongoDB config missing. Set MONGODB_URI or MONGODB_CLUSTER/MONGODB_DATABASE.");
+    return null;
+  }
 
   return `mongodb+srv://${username}:${password}@${cluster}/${database}?retryWrites=true&w=majority`;
 };
 
-// MongoDB connection
-mongoose.connect(constructMongoURI(), {
-  // added options for better stability
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-});
+const mongoURI = constructMongoURI();
 
-mongoose.connection.on("connected", () => {
-  console.log(`Connected to MongoDB ${mongoose.connection.name}`);
-});
+if (mongoURI) {
+  mongoose.connect(mongoURI, {
+    // added options for better stability
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  }).catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 
-mongoose.connection.on("error", (err) => {
-  console.error("MongoDB connection error:", err);
-});
+  mongoose.connection.on("connected", () => {
+    console.log(`Connected to MongoDB ${mongoose.connection.name}`);
+  });
+
+  mongoose.connection.on("error", (err) => {
+    console.error("MongoDB connection error:", err);
+  });
+} else {
+  console.warn("MongoDB connection skipped because no URI or cluster/database were provided.");
+}
 
 // Health check endpoint
 app.get("/health", (req, res) => {
