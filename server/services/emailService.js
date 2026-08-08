@@ -12,7 +12,7 @@ const createTransporter = () => {
 };
 
 const getClientAppBaseUrl = () => {
-  const baseUrl = process.env.SECONDARY_URL || process.env.CLIENT_URL || "http://localhost:5173";
+  const baseUrl = process.env.CLIENT_URL || process.env.SECONDARY_URL || "http://localhost:5173";
   return baseUrl.replace(/\/$/, "");
 };
 
