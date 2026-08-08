@@ -6,14 +6,32 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const logger = require("morgan");
 
-// Set up allowed origins from environment variables
+// Set up allowed origins from environment variables and common deployment hosts
 const allowedOrigins = [
   process.env.SECONDARY_URL, // optional secondary URL
   process.env.CLIENT_URL, // primary client URL
+  "https://dog-app-booking-system.vercel.app",
+  "https://dog-app-booking-system.onrender.com",
   "http://localhost:5173", // local development (Vite default)
   "http://localhost:5174", // Vite fallback port
   "http://localhost:3000", // if client runs on 3000
 ].filter(Boolean); // removes any undefined/null values
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  return (
+    origin.includes("localhost") ||
+    origin.endsWith(".vercel.app") ||
+    origin.endsWith(".onrender.com")
+  );
+};
 
 console.log("Allowed CORS origins:", allowedOrigins);
 console.log("Environment CLIENT_URL:", process.env.CLIENT_URL);
@@ -23,13 +41,7 @@ const corsOptions = {
     console.log("CORS check - Request origin:", origin);
     console.log("CORS check - Allowed origins:", allowedOrigins);
 
-    // allow requests with no origin - mobile apps, Postman, etc.
-    if (!origin) {
-      console.log("CORS: Allowing request with no origin");
-      return callback(null, true);
-    }
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (isAllowedOrigin(origin)) {
       console.log("CORS: Origin allowed:", origin);
       callback(null, true);
     } else {

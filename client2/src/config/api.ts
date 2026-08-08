@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-// create base URL from env or default to localhost:3000/api
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// create base URL from env or default to the Render backend URL when deployed
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://dog-app-booking-system.onrender.com/api';
 
 // API endpoints configuration
 export const API_ENDPOINTS = {
